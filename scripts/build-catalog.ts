@@ -52,9 +52,9 @@ function inferConcerns(text: string): string[] {
   return c.length > 0 ? [...new Set(c)] : ['Dryness / dehydration']
 }
 
-function fetchFromAPI(category: string, page: number): Promise<RawProduct[]> {
+function fetchFromAPI(searchTerm: string, page: number): Promise<RawProduct[]> {
   return new Promise((resolve) => {
-    const url = `https://world.openbeautyfacts.org/cgi/search.pl?action=process&tagtype_0=categories&tag_contains_0=contains&tag_0=${encodeURIComponent(category)}&page_size=100&page=${page}&action=process&json=1`
+    const url = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerm)}&search_simple=1&action=process&json=1&page_size=100&page=${page}`
     https.get(url, { headers: { 'User-Agent': 'Skinvra/1.0' } }, (res) => {
       let data = ''
       res.on('data', (chunk) => data += chunk)
@@ -74,15 +74,31 @@ async function buildCatalog() {
   const products: object[] = []
   const seen = new Set<string>()
 
-  const categories = [
-    'moisturizers', 'serums', 'cleansers', 'sunscreens',
-    'toners', 'eye-creams', 'face-oils', 'masks', 'exfoliants'
+  const searchTerms = [
+    'face moisturizer',
+    'facial serum',
+    'face cleanser',
+    'face wash',
+    'sunscreen face',
+    'facial toner',
+    'eye cream',
+    'face oil',
+    'face mask',
+    'facial exfoliant',
+    'skin care moisturizer',
+    'anti aging serum',
+    'vitamin c serum',
+    'hyaluronic acid',
+    'retinol cream',
+    'niacinamide serum',
+    'salicylic acid cleanser',
+    'ceramide moisturizer',
   ]
 
-  for (const category of categories) {
-    console.log(`Fetching ${category}...`)
-    for (let page = 1; page <= 5; page++) {
-      const raw = await fetchFromAPI(category, page)
+  for (const term of searchTerms) {
+    console.log(`Fetching: ${term}...`)
+    for (let page = 1; page <= 3; page++) {
+      const raw = await fetchFromAPI(term, page)
       if (raw.length === 0) break
 
       for (const p of raw) {
@@ -110,11 +126,17 @@ async function buildCatalog() {
         })
       }
 
-      await new Promise(r => setTimeout(r, 200))
+      await new Promise(r => setTimeout(r, 300))
     }
   }
 
   console.log(`\nDone: ${products.length} products collected`)
+
+  if (products.length === 0) {
+    console.log('WARNING: No products found! Check API connectivity.')
+    process.exit(1)
+  }
+
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(products, null, 2))
   console.log(`Written to ${OUTPUT_PATH}`)
 }
