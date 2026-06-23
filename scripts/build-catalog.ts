@@ -1,175 +1,123 @@
 import fs from 'fs'
 import https from 'https'
-import zlib from 'zlib'
-import { Transform } from 'stream'
 
 const OUTPUT_PATH = './lib/catalog-generated.json'
-const CSV_URL = 'https://static.openbeautyfacts.org/data/en.openbeautyfacts.org.products.csv.gz'
+const API_BASE = 'skincare-api.herokuapp.com'
 
-function detectType(categories: string, name: string): string {
-  const t = (categories + ' ' + name).toLowerCase()
+interface RawProduct {
+  id: number
+  brand: string
+  name: string
+  ingredient_list: string[]
+}
+
+function detectType(name: string): string {
+  const t = name.toLowerCase()
   if (t.includes('serum')) return 'Serum'
-  if (t.includes('cleanser') || t.includes('face wash')) return 'Cleanser'
-  if (t.includes('sunscreen') || t.includes('spf')) return 'Sunscreen'
-  if (t.includes('toner')) return 'Toner'
-  if (t.includes('eye cream') || t.includes('eye treatment')) return 'Eye cream'
-  if (t.includes('exfoliant') || t.includes('peel') || t.includes('scrub')) return 'Exfoliant'
-  if (t.includes('face oil') || t.includes('facial oil')) return 'Face oil'
-  if (t.includes('mask') || t.includes('masque')) return 'Mask'
+  if (t.includes('cleanser') || t.includes('face wash') || t.includes('cleansing') || t.includes('foam') || t.includes('cleanse')) return 'Cleanser'
+  if (t.includes('sunscreen') || t.includes('spf') || t.includes('sun')) return 'Sunscreen'
+  if (t.includes('toner') || t.includes('toning')) return 'Toner'
+  if (t.includes('eye cream') || t.includes('eye gel') || t.includes('eye treatment')) return 'Eye cream'
+  if (t.includes('exfoliant') || t.includes('exfoliating') || t.includes('peel') || t.includes('scrub')) return 'Exfoliant'
+  if (t.includes('oil') && !t.includes('control')) return 'Face oil'
+  if (t.includes('mask') || t.includes('masque') || t.includes('pack')) return 'Mask'
+  if (t.includes('mist') || t.includes('essence') || t.includes('toner')) return 'Toner'
   return 'Moisturizer'
 }
 
-function inferSkinTypes(text: string): string[] {
-  const t = text.toLowerCase()
+function inferSkinTypes(ingredients: string): string[] {
+  const t = ingredients.toLowerCase()
   const types: string[] = []
-  if (t.includes('oil-free') || t.includes('mattif') || t.includes('noncomedogenic')) types.push('oily', 'acne-prone')
-  if (t.includes('dry skin') || t.includes('nourishing') || t.includes('shea')) types.push('dry')
-  if (t.includes('sensitive') || t.includes('fragrance-free') || t.includes('calming')) types.push('sensitive')
-  if (t.includes('combination')) types.push('combination')
-  if (t.includes('all skin') || t.includes('all types')) return ['all']
-  if (t.includes('acne') || t.includes('salicylic') || t.includes('benzoyl')) types.push('acne-prone')
+  if (t.includes('salicylic') || t.includes('benzoyl') || t.includes('niacinamide')) types.push('oily', 'acne-prone')
+  if (t.includes('shea') || t.includes('ceramide') || t.includes('squalane')) types.push('dry')
+  if (t.includes('centella') || t.includes('allantoin') || t.includes('aloe')) types.push('sensitive')
+  if (t.includes('hyaluronic') || t.includes('glycerin')) types.push('normal', 'combination')
   return types.length > 0 ? [...new Set(types)] : ['all']
 }
 
-function inferConcerns(text: string): string[] {
-  const t = text.toLowerCase()
+function inferConcerns(name: string, ingredients: string): string[] {
+  const t = (name + ' ' + ingredients).toLowerCase()
   const c: string[] = []
-  if (t.includes('salicylic') || t.includes('benzoyl') || t.includes('acne')) c.push('Acne / breakouts')
-  if (t.includes('vitamin c') || t.includes('ascorbic') || t.includes('brightening') || t.includes('dark spot')) c.push('Dark spots / hyperpigmentation')
-  if (t.includes('retinol') || t.includes('peptide') || t.includes('anti-aging') || t.includes('firming')) c.push('Fine lines / wrinkles')
-  if (t.includes('centella') || t.includes('calming') || t.includes('redness') || t.includes('azelaic')) c.push('Redness / rosacea')
-  if (t.includes('glycolic') || t.includes('lactic') || t.includes('aha') || t.includes('texture')) c.push('Dullness / uneven texture')
-  if (t.includes('pore') || t.includes('minimiz')) c.push('Large pores')
-  if (t.includes('hyaluronic') || t.includes('ceramide') || t.includes('hydrat')) c.push('Dryness / dehydration')
-  if (t.includes('caffeine') || t.includes('dark circle') || t.includes('depuff')) c.push('Dark circles')
-  if (t.includes('spf') || t.includes('antioxidant') || t.includes('sun damage')) c.push('Sun damage')
-  if (t.includes('even') || t.includes('kojic') || t.includes('niacinamide')) c.push('Uneven skin tone')
+  if (t.includes('salicylic') || t.includes('benzoyl') || t.includes('acne') || t.includes('blemish')) c.push('Acne / breakouts')
+  if (t.includes('ascorbic') || t.includes('vitamin c') || t.includes('brightening') || t.includes('dark spot') || t.includes('spot')) c.push('Dark spots / hyperpigmentation')
+  if (t.includes('retinol') || t.includes('peptide') || t.includes('anti-aging') || t.includes('firming') || t.includes('wrinkle')) c.push('Fine lines / wrinkles')
+  if (t.includes('centella') || t.includes('calming') || t.includes('redness') || t.includes('azelaic') || t.includes('soothing')) c.push('Redness / rosacea')
+  if (t.includes('glycolic') || t.includes('lactic') || t.includes('aha') || t.includes('exfoliat') || t.includes('texture')) c.push('Dullness / uneven texture')
+  if (t.includes('pore') || t.includes('niacinamide') || t.includes('clay') || t.includes('zinc')) c.push('Large pores')
+  if (t.includes('hyaluronic') || t.includes('ceramide') || t.includes('hydrat') || t.includes('moisture') || t.includes('glycerin')) c.push('Dryness / dehydration')
+  if (t.includes('caffeine') || t.includes('eye') || t.includes('dark circle') || t.includes('depuff')) c.push('Dark circles')
+  if (t.includes('spf') || t.includes('antioxidant') || t.includes('vitamin e') || t.includes('sun')) c.push('Sun damage')
+  if (t.includes('even') || t.includes('tone') || t.includes('kojic') || t.includes('niacinamide') || t.includes('arbutin')) c.push('Uneven skin tone')
   return c.length > 0 ? [...new Set(c)] : ['Dryness / dehydration']
 }
 
-function isSkincare(categories: string, name: string): boolean {
-  const t = (categories + ' ' + name).toLowerCase()
-  const skincareTerms = [
-    'moisturizer', 'serum', 'cleanser', 'face wash', 'sunscreen',
-    'toner', 'eye cream', 'face oil', 'mask', 'masque', 'exfoliant',
-    'skincare', 'skin care', 'facial', 'face cream', 'night cream',
-    'day cream', 'anti-aging', 'anti aging', 'face lotion',
-  ]
-  return skincareTerms.some(term => t.includes(term))
-}
-
-// Simple TSV parser that handles quoted fields
-function parseTSVLine(line: string): string[] {
-  const fields: string[] = []
-  let current = ''
-  let inQuotes = false
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    if (char === '"') {
-      inQuotes = !inQuotes
-    } else if (char === '\t' && !inQuotes) {
-      fields.push(current)
-      current = ''
-    } else {
-      current += char
+function fetchProducts(page: number): Promise<RawProduct[]> {
+  return new Promise((resolve) => {
+    const path = `/products?limit=100&page=${page}`
+    const options = {
+      hostname: API_BASE,
+      path,
+      method: 'GET',
+      headers: { 'User-Agent': 'Skinvra/1.0' },
     }
-  }
-  fields.push(current)
-  return fields
+    https.get(options, (res) => {
+      let data = ''
+      res.on('data', (chunk) => data += chunk)
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data)
+          resolve(Array.isArray(json) ? json : [])
+        } catch { resolve([]) }
+      })
+      res.on('error', () => resolve([]))
+    })
+  })
 }
 
 async function buildCatalog() {
-  console.log('Downloading Open Beauty Facts CSV...')
-  console.log('(This is the official cosmetics export from static.openbeautyfacts.org)')
-
+  console.log('Fetching from skincare-api.herokuapp.com...')
   const products: object[] = []
-  const seen = new Set<string>()
-  let headers: string[] = []
-  let lineCount = 0
-  let kept = 0
-  let buffer = ''
+  const seen = new Set<number>()
 
-  await new Promise<void>((resolve, reject) => {
-    https.get(CSV_URL, { headers: { 'User-Agent': 'Skinvra/1.0' } }, (res) => {
-      if (res.statusCode === 301 || res.statusCode === 302) {
-        const redirect = res.headers.location || ''
-        console.log(`Redirecting to ${redirect}`)
-        https.get(redirect, { headers: { 'User-Agent': 'Skinvra/1.0' } }, (res2) => {
-          processStream(res2)
-        }).on('error', reject)
-        return
-      }
-      processStream(res)
+  for (let page = 1; page <= 25; page++) {
+    console.log(`Fetching page ${page}...`)
+    const raw = await fetchProducts(page)
+    if (raw.length === 0) {
+      console.log(`No more products at page ${page}, stopping.`)
+      break
+    }
 
-      function processStream(stream: NodeJS.ReadableStream) {
-        const gunzip = zlib.createGunzip()
-        stream.pipe(gunzip)
+    for (const p of raw) {
+      if (seen.has(p.id)) continue
+      seen.add(p.id)
 
-        gunzip.on('data', (chunk: Buffer) => {
-          buffer += chunk.toString('utf8')
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || ''
+      if (!p.name || !p.ingredient_list || p.ingredient_list.length < 3) continue
 
-          for (const line of lines) {
-            if (!line.trim()) continue
-            lineCount++
+      const ingredientsStr = p.ingredient_list.join(', ')
+      const productType = detectType(p.name)
 
-            if (lineCount === 1) {
-              headers = parseTSVLine(line)
-              console.log(`Headers found: ${headers.length} columns`)
-              continue
-            }
+      products.push({
+        id: String(p.id),
+        name: p.name.trim(),
+        brand: (p.brand || 'Unknown').trim(),
+        price: 0,
+        productType,
+        skinTypes: inferSkinTypes(ingredientsStr),
+        concerns: inferConcerns(p.name, ingredientsStr),
+        ingredients: ingredientsStr,
+        description: `${productType} by ${(p.brand || 'Unknown').trim()}. Targets ${inferConcerns(p.name, ingredientsStr).slice(0, 2).join(' and ').toLowerCase()}.`,
+        link: `https://skincare-api.herokuapp.com/products/${p.id}`,
+        imageUrl: '',
+        rating: 0,
+        reviewCount: 0,
+      })
+    }
 
-            const fields = parseTSVLine(line)
-            const row: Record<string, string> = {}
-            headers.forEach((h, i) => { row[h] = fields[i] || '' })
+    console.log(`  Total so far: ${products.length}`)
+    await new Promise(r => setTimeout(r, 200))
+  }
 
-            const name = row['product_name'] || ''
-            const ingredients = row['ingredients_text'] || ''
-            const categories = row['categories'] || ''
-            const code = row['code'] || ''
-            const brand = row['brands'] || ''
-
-            if (!name || !ingredients || ingredients.length < 30) continue
-            if (!isSkincare(categories, name)) continue
-            if (seen.has(code)) continue
-            seen.add(code)
-
-            const allText = ingredients + ' ' + categories + ' ' + name
-            const productType = detectType(categories, name)
-
-            products.push({
-              id: code || String(Math.random()),
-              name: name.trim(),
-              brand: brand.split(',')[0].trim() || 'Unknown',
-              price: 0,
-              productType,
-              skinTypes: inferSkinTypes(allText),
-              concerns: inferConcerns(allText),
-              ingredients: ingredients.trim(),
-              description: `${productType} by ${brand.split(',')[0].trim() || 'Unknown'}. Targets ${inferConcerns(allText).slice(0, 2).join(' and ').toLowerCase()}.`,
-              link: `https://world.openbeautyfacts.org/product/${code}`,
-              imageUrl: row['image_url'] || '',
-              rating: 0,
-              reviewCount: 0,
-            })
-            kept++
-
-            if (kept % 500 === 0) {
-              process.stdout.write(`\r${kept} skincare products kept from ${lineCount} lines scanned`)
-            }
-          }
-        })
-
-        gunzip.on('end', resolve)
-        gunzip.on('error', reject)
-        stream.on('error', reject)
-      }
-    }).on('error', reject)
-  })
-
-  console.log(`\nDone: ${kept} skincare products from ${lineCount} total lines`)
+  console.log(`\nDone: ${products.length} products collected`)
 
   if (products.length === 0) {
     console.error('No products found!')
