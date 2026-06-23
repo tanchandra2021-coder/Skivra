@@ -179,8 +179,8 @@ function extractFailedActives(pastProductsText: string): string[] {
 function msePenalty(failedActives: string[], product: Product): number {
   if (failedActives.length === 0) return 0
   const corpus = (product.ingredients + ' ' + product.description).toLowerCase()
-  const productVector = failedActives.map(a => corpus.includes(a) ? 1 : 0)
-  const mse = productVector.reduce((sum, val) => sum + Math.pow(val - 1, 2), 0) / failedActives.length
+  const productVector: number[] = failedActives.map(a => corpus.includes(a) ? 1 : 0)
+  const mse = productVector.reduce((sum: number, val: number) => sum + Math.pow(val - 1, 2), 0) / failedActives.length
   return (1 - mse) * 50
 }
 
