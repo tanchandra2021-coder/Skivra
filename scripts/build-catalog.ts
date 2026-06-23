@@ -1,27 +1,15 @@
 import fs from 'fs'
 import https from 'https'
-import zlib from 'zlib'
 
-const OBF_DUMP_URL = 'https://world.openbeautyfacts.org/data/openfoodfacts-products.jsonl.gz'
 const OUTPUT_PATH = './lib/catalog-generated.json'
-
-const SKINCARE_CATEGORIES = [
-  'moisturizer','moisturizers','serum','serums','cleanser','cleansers',
-  'face wash','toner','toners','sunscreen','eye cream','eye creams',
-  'face oil','face oils','mask','masks','exfoliant','exfoliants',
-  'facial care','skin care','skincare','face care','face cream',
-  'night cream','day cream',
-]
 
 interface RawProduct {
   code?: string
   product_name?: string
   brands?: string
   categories?: string
-  categories_tags?: string[]
   ingredients_text?: string
   image_url?: string
-  [key: string]: unknown
 }
 
 function detectType(categories: string, name: string): string {
@@ -64,62 +52,69 @@ function inferConcerns(text: string): string[] {
   return c.length > 0 ? [...new Set(c)] : ['Dryness / dehydration']
 }
 
-function isSkincare(p: RawProduct): boolean {
-  const cats = (p.categories || '').toLowerCase()
-  const tags = (p.categories_tags || []).join(' ').toLowerCase()
-  const inCat = SKINCARE_CATEGORIES.some(c => cats.includes(c) || tags.includes(c))
-  return inCat && !!(p.ingredients_text) && p.ingredients_text.length > 30 && !!(p.product_name)
+function fetchFromAPI(category: string, page: number): Promise<RawProduct[]> {
+  return new Promise((resolve) => {
+    const url = `https://world.openbeautyfacts.org/cgi/search.pl?action=process&tagtype_0=categories&tag_contains_0=contains&tag_0=${encodeURIComponent(category)}&page_size=100&page=${page}&action=process&json=1`
+    https.get(url, { headers: { 'User-Agent': 'Skinvra/1.0' } }, (res) => {
+      let data = ''
+      res.on('data', (chunk) => data += chunk)
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data)
+          resolve(json.products || [])
+        } catch { resolve([]) }
+      })
+      res.on('error', () => resolve([]))
+    })
+  })
 }
 
 async function buildCatalog() {
-  console.log('Downloading Open Beauty Facts...')
+  console.log('Fetching from Open Beauty Facts API...')
   const products: object[] = []
-  let total = 0, kept = 0
-  let buffer = ''
+  const seen = new Set<string>()
 
-  await new Promise<void>((resolve, reject) => {
-    https.get(OBF_DUMP_URL, (res) => {
-      const gunzip = zlib.createGunzip()
-      res.pipe(gunzip)
-      gunzip.on('data', (chunk: Buffer) => {
-        buffer += chunk.toString()
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-        for (const line of lines) {
-          if (!line.trim()) continue
-          total++
-          try {
-            const raw: RawProduct = JSON.parse(line)
-            if (!isSkincare(raw)) continue
-            const allText = (raw.ingredients_text || '') + ' ' + (raw.categories || '') + ' ' + (raw.product_name || '')
-            const productType = detectType(raw.categories || '', raw.product_name || '')
-            products.push({
-              id: raw.code || String(Math.random()),
-              name: raw.product_name!.trim(),
-              brand: (raw.brands || 'Unknown').split(',')[0].trim(),
-              price: 0,
-              productType,
-              skinTypes: inferSkinTypes(allText),
-              concerns: inferConcerns(allText),
-              ingredients: raw.ingredients_text!.trim(),
-              description: `${productType} by ${(raw.brands || '').split(',')[0].trim()}. Targets ${inferConcerns(allText).slice(0, 2).join(' and ').toLowerCase()}.`,
-              link: `https://world.openbeautyfacts.org/product/${raw.code}`,
-              imageUrl: raw.image_url || '',
-              rating: 0,
-              reviewCount: 0,
-            })
-            kept++
-            if (kept % 500 === 0) process.stdout.write(`\r${kept} kept / ${total} scanned`)
-          } catch { /* skip malformed */ }
-        }
-      })
-      gunzip.on('end', resolve)
-      gunzip.on('error', reject)
-      res.on('error', reject)
-    })
-  })
+  const categories = [
+    'moisturizers', 'serums', 'cleansers', 'sunscreens',
+    'toners', 'eye-creams', 'face-oils', 'masks', 'exfoliants'
+  ]
 
-  console.log(`\nDone: ${kept} skincare products from ${total} total`)
+  for (const category of categories) {
+    console.log(`Fetching ${category}...`)
+    for (let page = 1; page <= 5; page++) {
+      const raw = await fetchFromAPI(category, page)
+      if (raw.length === 0) break
+
+      for (const p of raw) {
+        if (!p.product_name || !p.ingredients_text || seen.has(p.code || '')) continue
+        if (p.ingredients_text.length < 30) continue
+        seen.add(p.code || '')
+
+        const allText = (p.ingredients_text || '') + ' ' + (p.categories || '') + ' ' + (p.product_name || '')
+        const productType = detectType(p.categories || '', p.product_name || '')
+
+        products.push({
+          id: p.code || String(Math.random()),
+          name: p.product_name.trim(),
+          brand: (p.brands || 'Unknown').split(',')[0].trim(),
+          price: 0,
+          productType,
+          skinTypes: inferSkinTypes(allText),
+          concerns: inferConcerns(allText),
+          ingredients: p.ingredients_text.trim(),
+          description: `${productType} by ${(p.brands || '').split(',')[0].trim()}. Targets ${inferConcerns(allText).slice(0, 2).join(' and ').toLowerCase()}.`,
+          link: `https://world.openbeautyfacts.org/product/${p.code}`,
+          imageUrl: p.image_url || '',
+          rating: 0,
+          reviewCount: 0,
+        })
+      }
+
+      await new Promise(r => setTimeout(r, 200))
+    }
+  }
+
+  console.log(`\nDone: ${products.length} products collected`)
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(products, null, 2))
   console.log(`Written to ${OUTPUT_PATH}`)
 }
