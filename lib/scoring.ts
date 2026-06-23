@@ -104,4 +104,139 @@ function buildTFIDF(docs: string[]): Map<string, number>[] {
     for (const t of tokens) tf.set(t, (tf.get(t) ?? 0) + 1)
     const tfidf: Map<string, number> = new Map()
     for (const [t, count] of tf) {
-      const idf = Math.log((docs.length + 1) /
+      const idf = Math.log((docs.length + 1) / ((df.get(t) ?? 0) + 1))
+      tfidf.set(t, (count / tokens.length) * idf)
+    }
+    return tfidf
+  })
+}
+
+function cosineSimilarity(a: Map<string, number>, b: Map<string, number>): number {
+  let dot = 0, normA = 0, normB = 0
+  for (const [t, v] of a) {
+    dot += v * (b.get(t) ?? 0)
+    normA += v * v
+  }
+  for (const [, v] of b) normB += v * v
+  const denom = Math.sqrt(normA) * Math.sqrt(normB)
+  return denom === 0 ? 0 : dot / denom
+}
+
+function semanticScore(profile: SkinProfile, products: Product[]): number[] {
+  const query = [profile.skinType, profile.concerns.join(' '), profile.extraNotes].join(' ')
+  const docs = [query, ...products.map(p => p.description + ' ' + p.concerns.join(' '))]
+  const vectors = buildTFIDF(docs)
+  const queryVec = vectors[0]
+  return products.map((_, i) => Math.min(100, cosineSimilarity(queryVec, vectors[i + 1]) * 400))
+}
+
+function lcs(a: string[], b: string[]): number {
+  const dp: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0))
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1])
+    }
+  }
+  return dp[a.length][b.length]
+}
+
+function rougeL(profile: SkinProfile, product: Product): number {
+  const ref = tokenize(profile.concerns.join(' ') + ' ' + profile.skinType)
+  const hyp = tokenize(product.description + ' ' + product.concerns.join(' '))
+  if (ref.length === 0 || hyp.length === 0) return 0
+  const lcsLen = lcs(ref, hyp)
+  const precision = lcsLen / hyp.length
+  const recall = lcsLen / ref.length
+  if (precision + recall === 0) return 0
+  return (2 * precision * recall) / (precision + recall) * 100
+}
+
+function extractFailedActives(pastProductsText: string): string[] {
+  const failSignals = [
+    'broke me out', 'breakout', 'irritat', 'burned', 'burn', 'too harsh',
+    'peeling', 'peel', 'allergic', 'reaction', 'rash', 'stung', 'sting',
+    "didn't work", 'did not work', 'no results', 'worse', 'bad reaction', 'clogged'
+  ]
+  const knownActives = [
+    'niacinamide', 'retinol', 'retinoid', 'glycolic', 'lactic', 'salicylic',
+    'aha', 'bha', 'vitamin c', 'ascorbic', 'benzoyl', 'kojic', 'azelaic',
+    'hyaluronic', 'fragrance', 'parfum', 'alcohol', 'essential oil', 'tea tree',
+    'rose hip', 'argan', 'coconut', 'mineral oil', 'lanolin', 'dimethicone',
+    'sulfate', 'sls', 'sles',
+  ]
+  const lines = pastProductsText.toLowerCase().split(/[.,\n]+/)
+  const failed: string[] = []
+  for (const line of lines) {
+    if (failSignals.some(sig => line.includes(sig))) {
+      for (const active of knownActives) {
+        if (line.includes(active)) failed.push(active)
+      }
+    }
+  }
+  return [...new Set(failed)]
+}
+
+function msePenalty(failedActives: string[], product: Product): number {
+  if (failedActives.length === 0) return 0
+  const corpus = (product.ingredients + ' ' + product.description).toLowerCase()
+  const productVector = failedActives.map(a => corpus.includes(a) ? 1 : 0)
+  const mse = productVector.reduce((sum, val) => sum + Math.pow(val - 1, 2), 0) / failedActives.length
+  return (1 - mse) * 50
+}
+
+function inBudget(product: Product, budget: string): boolean {
+  const p = product.price
+  if (budget === 'Under $25') return p < 25
+  if (budget === '$25–$50') return p >= 25 && p <= 50
+  if (budget === '$50–$100') return p > 50 && p <= 100
+  if (budget === '$100+') return p > 100
+  return true
+}
+
+export function scoreProducts(profile: SkinProfile, catalog: Product[]): ScoredProduct[] {
+  const filtered = catalog.filter(p => {
+    const typeMatch = !profile.productType ||
+      profile.productType === 'Not sure — suggest' ||
+      p.productType.toLowerCase() === profile.productType.toLowerCase()
+    const budgetMatch = inBudget(p, profile.budget)
+    const skinMatch = p.skinTypes.includes('all') || p.skinTypes.includes(profile.skinType)
+    return typeMatch && budgetMatch && skinMatch
+  })
+
+  if (filtered.length === 0) return []
+
+  const failedActives = extractFailedActives(profile.pastProducts || '')
+  const semanticScores = semanticScore(profile, filtered)
+
+  return filtered
+    .map((product, i) => {
+      const kw    = keywordScore(profile, product)
+      const sem   = semanticScores[i]
+      const rouge = rougeL(profile, product)
+      const mse   = msePenalty(failedActives, product)
+      const clean = computeCleanScore(product.ingredients)
+      const flags = scanIngredients(product.ingredients)
+
+      const relevance = (kw * 0.30) + (sem * 0.25) + (rouge * 0.20) - (mse * 0.15)
+      const ratingBonus = ((product.rating / 5) * 100) * 0.10
+      const finalScore = Math.max(0, relevance + (clean * 0.15) + ratingBonus)
+
+      return {
+        ...product,
+        flags,
+        isClean: flags.length === 0,
+        cleanScore: clean,
+        relevanceScore: relevance,
+        finalScore,
+        scoreBreakdown: {
+          keywordScore:  Math.round(kw),
+          semanticScore: Math.round(sem),
+          rougeScore:    Math.round(rouge),
+          msepenalty:    Math.round(mse),
+          cleanScore:    Math.round(clean),
+        },
+      }
+    })
+    .sort((a, b) => b.finalScore - a.finalScore)
+    .slice(0, 5)
+}
