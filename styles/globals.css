@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-ivory-100 text-gray-800 antialiased;
+  }
+}
+
+@layer components {
+  .chip {
+    @apply px-3 py-1.5 rounded-full text-sm border border-gray-200 bg-white cursor-pointer
+           transition-all duration-150 select-none hover:border-sage-400 hover:text-sage-700;
+  }
+  .chip.selected {
+    @apply bg-sage-50 border-sage-500 text-sage-800 font-medium;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sage-600 text-white
+           text-sm font-medium transition-all hover:bg-sage-700 active:scale-95
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-700
+           text-sm font-medium border border-gray-200 transition-all hover:bg-gray-50
+           active:scale-95;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 p-5;
+  }
+  .input-base {
+    @apply w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm
+           text-gray-800 placeholder-gray-400 focus:outline-none focus:border-sage-400
+           transition-colors;
+  }
+}
