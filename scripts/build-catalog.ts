@@ -1,16 +1,10 @@
 import fs from 'fs'
 import https from 'https'
+import zlib from 'zlib'
+import { Transform } from 'stream'
 
 const OUTPUT_PATH = './lib/catalog-generated.json'
-
-interface RawProduct {
-  code?: string
-  product_name?: string
-  brands?: string
-  categories?: string
-  ingredients_text?: string
-  image_url?: string
-}
+const CSV_URL = 'https://static.openbeautyfacts.org/data/en.openbeautyfacts.org.products.csv.gz'
 
 function detectType(categories: string, name: string): string {
   const t = (categories + ' ' + name).toLowerCase()
@@ -18,9 +12,9 @@ function detectType(categories: string, name: string): string {
   if (t.includes('cleanser') || t.includes('face wash')) return 'Cleanser'
   if (t.includes('sunscreen') || t.includes('spf')) return 'Sunscreen'
   if (t.includes('toner')) return 'Toner'
-  if (t.includes('eye cream')) return 'Eye cream'
+  if (t.includes('eye cream') || t.includes('eye treatment')) return 'Eye cream'
   if (t.includes('exfoliant') || t.includes('peel') || t.includes('scrub')) return 'Exfoliant'
-  if (t.includes('face oil')) return 'Face oil'
+  if (t.includes('face oil') || t.includes('facial oil')) return 'Face oil'
   if (t.includes('mask') || t.includes('masque')) return 'Mask'
   return 'Moisturizer'
 }
@@ -49,91 +43,136 @@ function inferConcerns(text: string): string[] {
   if (t.includes('hyaluronic') || t.includes('ceramide') || t.includes('hydrat')) c.push('Dryness / dehydration')
   if (t.includes('caffeine') || t.includes('dark circle') || t.includes('depuff')) c.push('Dark circles')
   if (t.includes('spf') || t.includes('antioxidant') || t.includes('sun damage')) c.push('Sun damage')
+  if (t.includes('even') || t.includes('kojic') || t.includes('niacinamide')) c.push('Uneven skin tone')
   return c.length > 0 ? [...new Set(c)] : ['Dryness / dehydration']
 }
 
-function fetchFromAPI(searchTerm: string, page: number): Promise<RawProduct[]> {
-  return new Promise((resolve) => {
-    const url = `https://world.openbeautyfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerm)}&search_simple=1&action=process&json=1&page_size=100&page=${page}`
-    https.get(url, { headers: { 'User-Agent': 'Skinvra/1.0' } }, (res) => {
-      let data = ''
-      res.on('data', (chunk) => data += chunk)
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data)
-          resolve(json.products || [])
-        } catch { resolve([]) }
-      })
-      res.on('error', () => resolve([]))
-    })
-  })
+function isSkincare(categories: string, name: string): boolean {
+  const t = (categories + ' ' + name).toLowerCase()
+  const skincareTerms = [
+    'moisturizer', 'serum', 'cleanser', 'face wash', 'sunscreen',
+    'toner', 'eye cream', 'face oil', 'mask', 'masque', 'exfoliant',
+    'skincare', 'skin care', 'facial', 'face cream', 'night cream',
+    'day cream', 'anti-aging', 'anti aging', 'face lotion',
+  ]
+  return skincareTerms.some(term => t.includes(term))
+}
+
+// Simple TSV parser that handles quoted fields
+function parseTSVLine(line: string): string[] {
+  const fields: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === '\t' && !inQuotes) {
+      fields.push(current)
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  fields.push(current)
+  return fields
 }
 
 async function buildCatalog() {
-  console.log('Fetching from Open Beauty Facts API...')
+  console.log('Downloading Open Beauty Facts CSV...')
+  console.log('(This is the official cosmetics export from static.openbeautyfacts.org)')
+
   const products: object[] = []
   const seen = new Set<string>()
+  let headers: string[] = []
+  let lineCount = 0
+  let kept = 0
+  let buffer = ''
 
-  const searchTerms = [
-    'face moisturizer',
-    'facial serum',
-    'face cleanser',
-    'face wash',
-    'sunscreen face',
-    'facial toner',
-    'eye cream',
-    'face oil',
-    'face mask',
-    'facial exfoliant',
-    'skin care moisturizer',
-    'anti aging serum',
-    'vitamin c serum',
-    'hyaluronic acid',
-    'retinol cream',
-    'niacinamide serum',
-    'salicylic acid cleanser',
-    'ceramide moisturizer',
-  ]
-
-  for (const term of searchTerms) {
-    console.log(`Fetching: ${term}...`)
-    for (let page = 1; page <= 3; page++) {
-      const raw = await fetchFromAPI(term, page)
-      if (raw.length === 0) break
-
-      for (const p of raw) {
-        if (!p.product_name || !p.ingredients_text || seen.has(p.code || '')) continue
-        if (p.ingredients_text.length < 30) continue
-        seen.add(p.code || '')
-
-        const allText = (p.ingredients_text || '') + ' ' + (p.categories || '') + ' ' + (p.product_name || '')
-        const productType = detectType(p.categories || '', p.product_name || '')
-
-        products.push({
-          id: p.code || String(Math.random()),
-          name: p.product_name.trim(),
-          brand: (p.brands || 'Unknown').split(',')[0].trim(),
-          price: 0,
-          productType,
-          skinTypes: inferSkinTypes(allText),
-          concerns: inferConcerns(allText),
-          ingredients: p.ingredients_text.trim(),
-          description: `${productType} by ${(p.brands || '').split(',')[0].trim()}. Targets ${inferConcerns(allText).slice(0, 2).join(' and ').toLowerCase()}.`,
-          link: `https://world.openbeautyfacts.org/product/${p.code}`,
-          imageUrl: p.image_url || '',
-          rating: 0,
-          reviewCount: 0,
-        })
+  await new Promise<void>((resolve, reject) => {
+    https.get(CSV_URL, { headers: { 'User-Agent': 'Skinvra/1.0' } }, (res) => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        const redirect = res.headers.location || ''
+        console.log(`Redirecting to ${redirect}`)
+        https.get(redirect, { headers: { 'User-Agent': 'Skinvra/1.0' } }, (res2) => {
+          processStream(res2)
+        }).on('error', reject)
+        return
       }
+      processStream(res)
 
-      await new Promise(r => setTimeout(r, 300))
-    }
-  }
+      function processStream(stream: NodeJS.ReadableStream) {
+        const gunzip = zlib.createGunzip()
+        stream.pipe(gunzip)
 
-  console.log(`\nDone: ${products.length} products collected`)
+        gunzip.on('data', (chunk: Buffer) => {
+          buffer += chunk.toString('utf8')
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            if (!line.trim()) continue
+            lineCount++
+
+            if (lineCount === 1) {
+              headers = parseTSVLine(line)
+              console.log(`Headers found: ${headers.length} columns`)
+              continue
+            }
+
+            const fields = parseTSVLine(line)
+            const row: Record<string, string> = {}
+            headers.forEach((h, i) => { row[h] = fields[i] || '' })
+
+            const name = row['product_name'] || ''
+            const ingredients = row['ingredients_text'] || ''
+            const categories = row['categories'] || ''
+            const code = row['code'] || ''
+            const brand = row['brands'] || ''
+
+            if (!name || !ingredients || ingredients.length < 30) continue
+            if (!isSkincare(categories, name)) continue
+            if (seen.has(code)) continue
+            seen.add(code)
+
+            const allText = ingredients + ' ' + categories + ' ' + name
+            const productType = detectType(categories, name)
+
+            products.push({
+              id: code || String(Math.random()),
+              name: name.trim(),
+              brand: brand.split(',')[0].trim() || 'Unknown',
+              price: 0,
+              productType,
+              skinTypes: inferSkinTypes(allText),
+              concerns: inferConcerns(allText),
+              ingredients: ingredients.trim(),
+              description: `${productType} by ${brand.split(',')[0].trim() || 'Unknown'}. Targets ${inferConcerns(allText).slice(0, 2).join(' and ').toLowerCase()}.`,
+              link: `https://world.openbeautyfacts.org/product/${code}`,
+              imageUrl: row['image_url'] || '',
+              rating: 0,
+              reviewCount: 0,
+            })
+            kept++
+
+            if (kept % 500 === 0) {
+              process.stdout.write(`\r${kept} skincare products kept from ${lineCount} lines scanned`)
+            }
+          }
+        })
+
+        gunzip.on('end', resolve)
+        gunzip.on('error', reject)
+        stream.on('error', reject)
+      }
+    }).on('error', reject)
+  })
+
+  console.log(`\nDone: ${kept} skincare products from ${lineCount} total lines`)
 
   if (products.length === 0) {
-    console.log('WARNING: No products found! Check API connectivity.')
+    console.error('No products found!')
     process.exit(1)
   }
 
