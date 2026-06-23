@@ -1,12 +1,10 @@
-import type { SkinProfile, Product, ScoredProduct, ScoreBreakdown } from './types'
+import type { SkinProfile, Product, ScoredProduct } from './types'
 import { scanIngredients, computeCleanScore } from './ingredients'
 
-// ─── Keyword scoring ────────────────────────────────────────────────────────
-// Weighted term dictionaries per concern. Each term has a relevance weight.
 const CONCERN_KEYWORDS: Record<string, Record<string, number>> = {
   'acne / breakouts': {
     salicylic: 10, bha: 9, niacinamide: 8, benzoyl: 9, zinc: 7,
-    sulfur: 8, tea: 6, retinol: 6, noncomedogenic: 9, oil-free: 8,
+    sulfur: 8, tea: 6, retinol: 6, noncomedogenic: 9, 'oil-free': 8,
     pore: 7, clarifying: 8, acne: 10, breakout: 9, antibacterial: 7,
   },
   'dark spots / hyperpigmentation': {
@@ -16,13 +14,13 @@ const CONCERN_KEYWORDS: Record<string, Record<string, number>> = {
   },
   'fine lines / wrinkles': {
     retinol: 10, retinoid: 10, peptide: 9, collagen: 8, hyaluronic: 8,
-    firming: 8, anti-aging: 9, wrinkle: 9, line: 7, elastin: 8,
+    firming: 8, 'anti-aging': 9, wrinkle: 9, line: 7, elastin: 8,
     ceramide: 7, plump: 7, renewal: 7, aha: 7, glycolic: 7,
   },
   'redness / rosacea': {
     centella: 10, cica: 10, azelaic: 9, niacinamide: 8, green: 7,
     calming: 9, soothing: 9, sensitive: 8, redness: 10, rosacea: 10,
-    aloe: 7, chamomile: 7, fragrance-free: 9, gentle: 8, anti-inflammatory: 9,
+    aloe: 7, chamomile: 7, 'fragrance-free': 9, gentle: 8, 'anti-inflammatory': 9,
   },
   'dullness / uneven texture': {
     aha: 9, glycolic: 9, lactic: 8, exfoliant: 9, vitamin: 7,
@@ -32,7 +30,7 @@ const CONCERN_KEYWORDS: Record<string, Record<string, number>> = {
   'large pores': {
     niacinamide: 10, salicylic: 9, bha: 8, retinol: 7, clay: 8,
     pore: 10, minimizing: 9, tightening: 8, astringent: 7, zinc: 7,
-    oil-free: 8, mattifying: 8, refine: 8,
+    'oil-free': 8, mattifying: 8, refine: 8,
   },
   'dryness / dehydration': {
     hyaluronic: 10, ceramide: 10, glycerin: 9, squalane: 9, shea: 8,
@@ -57,12 +55,12 @@ const CONCERN_KEYWORDS: Record<string, Record<string, number>> = {
 }
 
 const SKIN_TYPE_KEYWORDS: Record<string, Record<string, number>> = {
-  oily: { oil-free: 10, mattifying: 9, lightweight: 8, gel: 8, balancing: 8, noncomedogenic: 9, salicylic: 7, niacinamide: 7 },
-  dry: { rich: 9, cream: 8, hydrating: 9, nourishing: 8, ceramide: 9, shea: 8, squalane: 8, emollient: 9 },
+  oily:        { 'oil-free': 10, mattifying: 9, lightweight: 8, gel: 8, balancing: 8, noncomedogenic: 9, salicylic: 7, niacinamide: 7 },
+  dry:         { rich: 9, cream: 8, hydrating: 9, nourishing: 8, ceramide: 9, shea: 8, squalane: 8, emollient: 9 },
   combination: { balancing: 9, lightweight: 8, gel: 7, 'oil-free': 7, hydrating: 7, niacinamide: 8 },
-  sensitive: { fragrance-free: 10, gentle: 9, calming: 9, soothing: 9, hypoallergenic: 9, centella: 8, aloe: 7, minimal: 7 },
-  normal: { balancing: 7, hydrating: 7, antioxidant: 7, lightweight: 7 },
-  'acne-prone': { noncomedogenic: 10, 'oil-free': 9, salicylic: 9, benzoyl: 8, niacinamide: 8, gentle: 7, bha: 9 },
+  sensitive:   { 'fragrance-free': 10, gentle: 9, calming: 9, soothing: 9, hypoallergenic: 9, centella: 8, aloe: 7, minimal: 7 },
+  normal:      { balancing: 7, hydrating: 7, antioxidant: 7, lightweight: 7 },
+  'acne-prone':{ noncomedogenic: 10, 'oil-free': 9, salicylic: 9, benzoyl: 8, niacinamide: 8, gentle: 7, bha: 9 },
 }
 
 function keywordScore(profile: SkinProfile, product: Product): number {
@@ -70,7 +68,6 @@ function keywordScore(profile: SkinProfile, product: Product): number {
   let score = 0
   let maxPossible = 0
 
-  // Score from concerns
   for (const concern of profile.concerns) {
     const dict = CONCERN_KEYWORDS[concern.toLowerCase()] ?? {}
     for (const [term, weight] of Object.entries(dict)) {
@@ -79,7 +76,6 @@ function keywordScore(profile: SkinProfile, product: Product): number {
     }
   }
 
-  // Score from skin type
   const skinDict = SKIN_TYPE_KEYWORDS[profile.skinType] ?? {}
   for (const [term, weight] of Object.entries(skinDict)) {
     maxPossible += weight
@@ -89,7 +85,6 @@ function keywordScore(profile: SkinProfile, product: Product): number {
   return maxPossible > 0 ? (score / maxPossible) * 100 : 50
 }
 
-// ─── TF-IDF semantic similarity ──────────────────────────────────────────────
 function tokenize(text: string): string[] {
   return text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean)
 }
@@ -109,161 +104,4 @@ function buildTFIDF(docs: string[]): Map<string, number>[] {
     for (const t of tokens) tf.set(t, (tf.get(t) ?? 0) + 1)
     const tfidf: Map<string, number> = new Map()
     for (const [t, count] of tf) {
-      const idf = Math.log((docs.length + 1) / ((df.get(t) ?? 0) + 1))
-      tfidf.set(t, (count / tokens.length) * idf)
-    }
-    return tfidf
-  })
-}
-
-function cosineSimilarity(a: Map<string, number>, b: Map<string, number>): number {
-  let dot = 0, normA = 0, normB = 0
-  for (const [t, v] of a) {
-    dot += v * (b.get(t) ?? 0)
-    normA += v * v
-  }
-  for (const [, v] of b) normB += v * v
-  const denom = Math.sqrt(normA) * Math.sqrt(normB)
-  return denom === 0 ? 0 : dot / denom
-}
-
-function semanticScore(profile: SkinProfile, products: Product[]): number[] {
-  const query = [
-    profile.skinType,
-    profile.concerns.join(' '),
-    profile.extraNotes,
-  ].join(' ')
-
-  const docs = [query, ...products.map(p => p.description + ' ' + p.concerns.join(' '))]
-  const vectors = buildTFIDF(docs)
-  const queryVec = vectors[0]
-
-  return products.map((_, i) => {
-    const sim = cosineSimilarity(queryVec, vectors[i + 1])
-    return Math.min(100, sim * 400) // scale to 0-100
-  })
-}
-
-// ─── ROUGE-L ─────────────────────────────────────────────────────────────────
-// Longest Common Subsequence between concern tokens and product description
-function lcs(a: string[], b: string[]): number {
-  const dp: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0))
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1])
-    }
-  }
-  return dp[a.length][b.length]
-}
-
-function rougeL(profile: SkinProfile, product: Product): number {
-  const ref = tokenize(profile.concerns.join(' ') + ' ' + profile.skinType)
-  const hyp = tokenize(product.description + ' ' + product.concerns.join(' '))
-  if (ref.length === 0 || hyp.length === 0) return 0
-  const lcsLen = lcs(ref, hyp)
-  const precision = lcsLen / hyp.length
-  const recall = lcsLen / ref.length
-  if (precision + recall === 0) return 0
-  const f1 = (2 * precision * recall) / (precision + recall)
-  return f1 * 100
-}
-
-// ─── MSE penalty for past-failed ingredients ─────────────────────────────────
-// Parse failed products from user text, extract key actives, penalize overlap
-function extractFailedActives(pastProductsText: string): string[] {
-  const failSignals = ['broke me out','breakout','irritat','burned','burn','too harsh','peeling','peel','allergic','reaction','rash','stung','sting','didn\'t work','did not work','no results','worse','bad reaction','clogged']
-  const lines = pastProductsText.toLowerCase().split(/[.,\n]+/)
-  const failed: string[] = []
-
-  const knownActives = [
-    'niacinamide','retinol','retinoid','glycolic','lactic','salicylic','aha','bha',
-    'vitamin c','ascorbic','benzoyl','kojic','azelaic','hyaluronic','fragrance',
-    'parfum','alcohol','essential oil','tea tree','rose hip','argan','coconut',
-    'mineral oil','lanolin','silicone','dimethicone','sulfate','sls','sles',
-  ]
-
-  for (const line of lines) {
-    if (failSignals.some(sig => line.includes(sig))) {
-      for (const active of knownActives) {
-        if (line.includes(active)) failed.push(active)
-      }
-    }
-  }
-  return [...new Set(failed)]
-}
-
-function msePenalty(failedActives: string[], product: Product): number {
-  if (failedActives.length === 0) return 0
-  const corpus = (product.ingredients + ' ' + product.description).toLowerCase()
-
-  // Treat each active as a dimension. 1 if present in product, 0 if not.
-  // MSE between user's "failed" vector (all 1s) and product vector.
-  const productVector = failedActives.map(a => corpus.includes(a) ? 1 : 0)
-  const failedVector = failedActives.map(() => 1)
-
-  const mse = productVector.reduce((sum, val, i) => sum + Math.pow(val - failedVector[i], 2), 0) / failedActives.length
-  // mse ranges 0–1. If all failed actives are present: mse=0 (bad), penalty=50.
-  // If none present: mse=1 (good), penalty=0.
-  return (1 - mse) * 50
-}
-
-// ─── Budget filter ────────────────────────────────────────────────────────────
-function inBudget(product: Product, budget: string): boolean {
-  const p = product.price
-  if (budget === 'Under $25') return p < 25
-  if (budget === '$25–$50') return p >= 25 && p <= 50
-  if (budget === '$50–$100') return p > 50 && p <= 100
-  if (budget === '$100+') return p > 100
-  return true
-}
-
-// ─── Main scorer ──────────────────────────────────────────────────────────────
-export function scoreProducts(profile: SkinProfile, catalog: Product[]): ScoredProduct[] {
-  // Filter by product type and budget
-  const filtered = catalog.filter(p => {
-    const typeMatch = !profile.productType ||
-      profile.productType === 'Not sure — suggest' ||
-      p.productType.toLowerCase() === profile.productType.toLowerCase()
-    const budgetMatch = inBudget(p, profile.budget)
-    const skinMatch = p.skinTypes.includes('all') || p.skinTypes.includes(profile.skinType)
-    return typeMatch && budgetMatch && skinMatch
-  })
-
-  if (filtered.length === 0) return []
-
-  const failedActives = extractFailedActives(profile.pastProducts || '')
-  const semanticScores = semanticScore(profile, filtered)
-
-  return filtered
-    .map((product, i) => {
-      const kw = keywordScore(profile, product)
-      const sem = semanticScores[i]
-      const rouge = rougeL(profile, product)
-      const mse = msePenalty(failedActives, product)
-      const clean = computeCleanScore(product.ingredients)
-      const flags = scanIngredients(product.ingredients)
-
-      // Weighted composite: keyword 30%, semantic 25%, rouge 20%, clean 15%, rating 10%
-      const relevance = (kw * 0.30) + (sem * 0.25) + (rouge * 0.20) - (mse * 0.15)
-      const ratingBonus = ((product.rating / 5) * 100) * 0.10
-      const finalScore = Math.max(0, relevance + (clean * 0.15) + ratingBonus)
-
-      return {
-        ...product,
-        flags,
-        isClean: flags.length === 0,
-        cleanScore: clean,
-        relevanceScore: relevance,
-        finalScore,
-        scoreBreakdown: {
-          keywordScore: Math.round(kw),
-          semanticScore: Math.round(sem),
-          rougeScore: Math.round(rouge),
-          msepenalty: Math.round(mse),
-          cleanScore: Math.round(clean),
-        },
-      }
-    })
-    .sort((a, b) => b.finalScore - a.finalScore)
-    .slice(0, 5)
-}
+      const idf = Math.log((docs.length + 1) /
