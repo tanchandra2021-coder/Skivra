@@ -55,12 +55,12 @@ const CONCERN_KEYWORDS: Record<string, Record<string, number>> = {
 }
 
 const SKIN_TYPE_KEYWORDS: Record<string, Record<string, number>> = {
-  oily:        { 'oil-free': 10, mattifying: 9, lightweight: 8, gel: 8, balancing: 8, noncomedogenic: 9, salicylic: 7, niacinamide: 7 },
-  dry:         { rich: 9, cream: 8, hydrating: 9, nourishing: 8, ceramide: 9, shea: 8, squalane: 8, emollient: 9 },
-  combination: { balancing: 9, lightweight: 8, gel: 7, 'oil-free': 7, hydrating: 7, niacinamide: 8 },
-  sensitive:   { 'fragrance-free': 10, gentle: 9, calming: 9, soothing: 9, hypoallergenic: 9, centella: 8, aloe: 7, minimal: 7 },
-  normal:      { balancing: 7, hydrating: 7, antioxidant: 7, lightweight: 7 },
-  'acne-prone':{ noncomedogenic: 10, 'oil-free': 9, salicylic: 9, benzoyl: 8, niacinamide: 8, gentle: 7, bha: 9 },
+  oily:         { 'oil-free': 10, mattifying: 9, lightweight: 8, gel: 8, balancing: 8, noncomedogenic: 9, salicylic: 7, niacinamide: 7 },
+  dry:          { rich: 9, cream: 8, hydrating: 9, nourishing: 8, ceramide: 9, shea: 8, squalane: 8, emollient: 9 },
+  combination:  { balancing: 9, lightweight: 8, gel: 7, 'oil-free': 7, hydrating: 7, niacinamide: 8 },
+  sensitive:    { 'fragrance-free': 10, gentle: 9, calming: 9, soothing: 9, hypoallergenic: 9, centella: 8, aloe: 7, minimal: 7 },
+  normal:       { balancing: 7, hydrating: 7, antioxidant: 7, lightweight: 7 },
+  'acne-prone': { noncomedogenic: 10, 'oil-free': 9, salicylic: 9, benzoyl: 8, niacinamide: 8, gentle: 7, bha: 9 },
 }
 
 function keywordScore(profile: SkinProfile, product: Product): number {
@@ -94,7 +94,7 @@ function buildTFIDF(docs: string[]): Map<string, number>[] {
   const df: Map<string, number> = new Map()
 
   for (const tokens of tokenizedDocs) {
-    for (const t of new Set(tokens)) {
+    for (const t of Array.from(new Set(tokens))) {
       df.set(t, (df.get(t) ?? 0) + 1)
     }
   }
@@ -103,7 +103,7 @@ function buildTFIDF(docs: string[]): Map<string, number>[] {
     const tf: Map<string, number> = new Map()
     for (const t of tokens) tf.set(t, (tf.get(t) ?? 0) + 1)
     const tfidf: Map<string, number> = new Map()
-    for (const [t, count] of tf) {
+    for (const [t, count] of Array.from(tf.entries())) {
       const idf = Math.log((docs.length + 1) / ((df.get(t) ?? 0) + 1))
       tfidf.set(t, (count / tokens.length) * idf)
     }
@@ -113,11 +113,11 @@ function buildTFIDF(docs: string[]): Map<string, number>[] {
 
 function cosineSimilarity(a: Map<string, number>, b: Map<string, number>): number {
   let dot = 0, normA = 0, normB = 0
-  for (const [t, v] of a) {
+  for (const [t, v] of Array.from(a.entries())) {
     dot += v * (b.get(t) ?? 0)
     normA += v * v
   }
-  for (const [, v] of b) normB += v * v
+  for (const [, v] of Array.from(b.entries())) normB += v * v
   const denom = Math.sqrt(normA) * Math.sqrt(normB)
   return denom === 0 ? 0 : dot / denom
 }
@@ -155,7 +155,7 @@ function extractFailedActives(pastProductsText: string): string[] {
   const failSignals = [
     'broke me out', 'breakout', 'irritat', 'burned', 'burn', 'too harsh',
     'peeling', 'peel', 'allergic', 'reaction', 'rash', 'stung', 'sting',
-    "didn't work", 'did not work', 'no results', 'worse', 'bad reaction', 'clogged'
+    "didn't work", 'did not work', 'no results', 'worse', 'bad reaction', 'clogged',
   ]
   const knownActives = [
     'niacinamide', 'retinol', 'retinoid', 'glycolic', 'lactic', 'salicylic',
@@ -173,7 +173,7 @@ function extractFailedActives(pastProductsText: string): string[] {
       }
     }
   }
-  return [...new Set(failed)]
+  return Array.from(new Set(failed))
 }
 
 function msePenalty(failedActives: string[], product: Product): number {
@@ -185,6 +185,7 @@ function msePenalty(failedActives: string[], product: Product): number {
 }
 
 function inBudget(product: Product, budget: string): boolean {
+  if (product.price === 0) return true
   const p = product.price
   if (budget === 'Under $25') return p < 25
   if (budget === '$25–$50') return p >= 25 && p <= 50
@@ -199,7 +200,8 @@ export function scoreProducts(profile: SkinProfile, catalog: Product[]): ScoredP
       profile.productType === 'Not sure — suggest' ||
       p.productType.toLowerCase() === profile.productType.toLowerCase()
     const budgetMatch = inBudget(p, profile.budget)
-    const skinMatch = p.skinTypes.includes('all') || p.skinTypes.includes(profile.skinType)
+    const skinMatch = !p.skinTypes || p.skinTypes.length === 0 ||
+      p.skinTypes.includes('all') || p.skinTypes.includes(profile.skinType)
     return typeMatch && budgetMatch && skinMatch
   })
 
