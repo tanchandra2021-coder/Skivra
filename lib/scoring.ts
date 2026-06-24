@@ -185,12 +185,12 @@ function msePenalty(failedActives: string[], product: Product): number {
 }
 
 function inBudget(product: Product, budget: string): boolean {
-  if (product.price === 0) return true
+  if (budget === 'any' || !budget) return true
   const p = product.price
-  if (budget === 'Under $25') return p < 25
-  if (budget === '$25–$50') return p >= 25 && p <= 50
-  if (budget === '$50–$100') return p > 50 && p <= 100
-  if (budget === '$100+') return p > 100
+  if (budget === 'drugstore') return p <= 25
+  if (budget === 'mid') return p > 10 && p <= 60
+  if (budget === 'premium') return p > 35 && p <= 120
+  if (budget === 'luxury') return p > 80
   return true
 }
 
