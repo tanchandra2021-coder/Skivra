@@ -100,7 +100,6 @@ export default function Home() {
             {/* ── HERO ── */}
             <section style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
 
-              {/* Two images */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: '100%' }}>
                 <div style={{ position: 'relative', overflow: 'hidden' }}>
                   <img src="/images/skin3.webp" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '60% center', display: 'block' }} />
@@ -110,7 +109,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Darker scrim for full readability */}
+              {/* Dark scrim */}
               <div style={{
                 position: 'absolute', inset: 0,
                 background: 'linear-gradient(180deg, rgba(15,9,4,0.72) 0%, rgba(15,9,4,0.52) 25%, rgba(15,9,4,0.52) 70%, rgba(15,9,4,0.95) 100%)',
@@ -134,77 +133,52 @@ export default function Home() {
                 padding: '0 32px',
                 animation: 'fadeUp 1.2s ease forwards',
               }}>
-                {/* Eyebrow */}
                 <p style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.5)', marginBottom: 12 }}>
                   ingredient-screened
                 </p>
 
-                {/* Logo */}
                 <h1 style={{ fontFamily: S, fontSize: 'clamp(64px, 9vw, 118px)', fontWeight: 400, lineHeight: 1, color: '#F0EAE0', textAlign: 'center', letterSpacing: '-0.01em', marginBottom: 10 }}>
                   skinvra<span style={{ color: '#8FA8C0' }}>.</span>
                 </h1>
 
-                {/* Tagline */}
                 <p style={{ fontFamily: S, fontSize: 'clamp(15px, 1.8vw, 20px)', fontStyle: 'italic', color: 'rgba(240,234,224,0.55)', letterSpacing: '0.01em', marginBottom: 44 }}>
                   know what&apos;s on your skin.
                 </p>
 
-                {/* UVPs — bigger, bolder, clearer hierarchy */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 44, width: '100%', maxWidth: 480 }}>
+                {/* UVP cards */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 44, width: '100%', maxWidth: 500 }}>
 
-                  {/* UVP 1 — biggest, most important */}
-                  <div style={{
-                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
-                    background: 'rgba(15,9,4,0.55)', border: '0.5px solid rgba(240,234,224,0.14)',
-                    borderRadius: 14, padding: '16px 24px',
-                    backdropFilter: 'blur(12px)',
-                  }}>
-                    <span style={{ fontFamily: S, fontSize: 28, color: '#8FA8C0', lineHeight: 1, flexShrink: 0 }}>2,000+</span>
-                    <span style={{ fontFamily: F, fontSize: 13, color: '#F0EAE0', letterSpacing: '0.02em', lineHeight: 1.4 }}>
-                      skincare products scanned &amp; ingredient-checked
-                    </span>
+                  <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, background: 'rgba(15,9,4,0.6)', border: '0.5px solid rgba(240,234,224,0.18)', borderRadius: 14, padding: '18px 24px', backdropFilter: 'blur(12px)' }}>
+                    <span style={{ fontFamily: S, fontSize: 32, color: '#8FA8C0', lineHeight: 1, flexShrink: 0 }}>2,000+</span>
+                    <div>
+                      <div style={{ fontFamily: F, fontSize: 13, color: '#F0EAE0', fontWeight: 500, marginBottom: 3 }}>products scanned &amp; ingredient-checked</div>
+                      <div style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.5)' }}>from drugstore to luxury, across every skin type</div>
+                    </div>
                   </div>
 
-                  {/* UVP 2 */}
-                  <div style={{
-                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
-                    background: 'rgba(15,9,4,0.55)', border: '0.5px solid rgba(240,234,224,0.14)',
-                    borderRadius: 14, padding: '16px 24px',
-                    backdropFilter: 'blur(12px)',
-                  }}>
-                    <span style={{ fontFamily: S, fontSize: 22, color: '#8FA8C0', lineHeight: 1, flexShrink: 0 }}>✓</span>
-                    <span style={{ fontFamily: F, fontSize: 13, color: '#F0EAE0', letterSpacing: '0.02em', lineHeight: 1.4 }}>
-                      recs based on what&apos;s worked — and what hasn&apos;t — for your skin
-                    </span>
+                  <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, background: 'rgba(15,9,4,0.6)', border: '0.5px solid rgba(240,234,224,0.18)', borderRadius: 14, padding: '18px 24px', backdropFilter: 'blur(12px)' }}>
+                    <span style={{ fontFamily: S, fontSize: 26, color: '#8FA8C0', lineHeight: 1, flexShrink: 0 }}>✓</span>
+                    <div>
+                      <div style={{ fontFamily: F, fontSize: 13, color: '#F0EAE0', fontWeight: 500, marginBottom: 3 }}>built around your exact reaction history</div>
+                      <div style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.5)' }}>tell us which products &amp; ingredients broke you out — we avoid them entirely</div>
+                    </div>
                   </div>
 
-                  {/* UVP 3 */}
-                  <div style={{
-                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14,
-                    background: 'rgba(15,9,4,0.55)', border: '0.5px solid rgba(240,234,224,0.14)',
-                    borderRadius: 14, padding: '16px 24px',
-                    backdropFilter: 'blur(12px)',
-                  }}>
-                    <span style={{ fontFamily: S, fontSize: 22, color: '#8FA8C0', lineHeight: 1, flexShrink: 0 }}>✦</span>
-                    <span style={{ fontFamily: F, fontSize: 13, color: '#F0EAE0', letterSpacing: '0.02em', lineHeight: 1.4 }}>
-                      only clean ingredients — no parabens, phthalates, or hormone disruptors
-                    </span>
+                  <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, background: 'rgba(15,9,4,0.6)', border: '0.5px solid rgba(240,234,224,0.18)', borderRadius: 14, padding: '18px 24px', backdropFilter: 'blur(12px)' }}>
+                    <span style={{ fontFamily: S, fontSize: 26, color: '#8FA8C0', lineHeight: 1, flexShrink: 0 }}>✦</span>
+                    <div>
+                      <div style={{ fontFamily: F, fontSize: 13, color: '#F0EAE0', fontWeight: 500, marginBottom: 3 }}>only clean ingredients — always</div>
+                      <div style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.5)' }}>no parabens, phthalates, hormone disruptors, or carcinogens</div>
+                    </div>
                   </div>
 
                 </div>
 
-                {/* CTA */}
-                <button onClick={() => setStep(1)} style={{
-                  fontFamily: F, display: 'inline-flex', alignItems: 'center', gap: 10,
-                  background: '#F0EAE0', color: '#2A1E14',
-                  fontSize: 11, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase',
-                  padding: '15px 38px', borderRadius: 100, border: 'none', cursor: 'pointer',
-                }}>
+                <button onClick={() => setStep(1)} style={{ fontFamily: F, display: 'inline-flex', alignItems: 'center', gap: 10, background: '#F0EAE0', color: '#2A1E14', fontSize: 11, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '15px 38px', borderRadius: 100, border: 'none', cursor: 'pointer' }}>
                   find my products →
                 </button>
               </div>
 
-              {/* Scroll hint */}
               <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 20 }}>
                 <div style={{ width: '0.5px', height: 32, background: 'rgba(240,234,224,0.2)' }} />
               </div>
@@ -224,8 +198,10 @@ export default function Home() {
 
             {/* ── HOW IT WORKS ── */}
             <section style={{ padding: '96px 64px', borderBottom: '0.5px solid rgba(240,234,224,0.07)' }}>
-              <p style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.22)', marginBottom: 64 }}>how it works</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px 72px' }}>
+              <p style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.4)', marginBottom: 64 }}>
+                how it works
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '52px 72px' }}>
                 {[
                   { n: '01', t: 'your skin profile', d: 'skin type, concerns, and what broke you out before' },
                   { n: '02', t: "what didn't work", d: 'we actively avoid actives that caused reactions' },
@@ -233,9 +209,9 @@ export default function Home() {
                   { n: '04', t: 'clean picks', d: '14 harmful ingredient categories checked instantly' },
                 ].map(({ n, t, d }) => (
                   <div key={n}>
-                    <div style={{ fontFamily: S, fontSize: 40, fontStyle: 'italic', color: 'rgba(240,234,224,0.04)', lineHeight: 1, marginBottom: 14 }}>{n}</div>
-                    <div style={{ fontFamily: S, fontSize: 20, color: '#F0EAE0', marginBottom: 8 }}>{t}</div>
-                    <div style={{ fontFamily: F, fontSize: 12, color: 'rgba(240,234,224,0.35)', lineHeight: 1.85 }}>{d}</div>
+                    <div style={{ fontFamily: S, fontSize: 13, fontStyle: 'italic', color: '#8FA8C0', lineHeight: 1, marginBottom: 14, letterSpacing: '0.04em' }}>{n}</div>
+                    <div style={{ fontFamily: S, fontSize: 22, color: '#F0EAE0', marginBottom: 10 }}>{t}</div>
+                    <div style={{ fontFamily: F, fontSize: 13, color: 'rgba(240,234,224,0.55)', lineHeight: 1.85 }}>{d}</div>
                   </div>
                 ))}
               </div>
@@ -257,7 +233,7 @@ export default function Home() {
 
             {/* ── SAMPLE RESULTS ── */}
             <section style={{ padding: '88px 64px', borderTop: '0.5px solid rgba(240,234,224,0.07)' }}>
-              <p style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.22)', marginBottom: 12 }}>sample results</p>
+              <p style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.4)', marginBottom: 12 }}>sample results</p>
               <h2 style={{ fontFamily: S, fontSize: 36, color: '#F0EAE0', marginBottom: 48, lineHeight: 1.1 }}>
                 picks for <em style={{ fontStyle: 'italic', color: '#8FA8C0' }}>oily,</em> acne-prone skin
               </h2>
@@ -270,13 +246,13 @@ export default function Home() {
                   <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(240,234,224,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>{p.icon}</div>
                   <div>
                     <div style={{ fontFamily: S, fontSize: 16, color: '#F0EAE0', marginBottom: 4 }}>{p.name}</div>
-                    <div style={{ fontFamily: F, fontSize: 10, color: 'rgba(240,234,224,0.35)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{p.brand}</div>
+                    <div style={{ fontFamily: F, fontSize: 10, color: 'rgba(240,234,224,0.4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{p.brand}</div>
                   </div>
                   <div style={{ marginLeft: 'auto', textAlign: 'right', flexShrink: 0 }}>
-                    <span style={{ fontFamily: F, fontSize: 9, padding: '4px 12px', borderRadius: 100, display: 'block', marginBottom: 5, letterSpacing: '0.06em', color: p.clean ? 'rgba(143,168,192,0.9)' : 'rgba(240,234,224,0.35)', border: `0.5px solid ${p.clean ? 'rgba(143,168,192,0.3)' : 'rgba(240,234,224,0.12)'}` }}>
+                    <span style={{ fontFamily: F, fontSize: 9, padding: '4px 12px', borderRadius: 100, display: 'block', marginBottom: 5, letterSpacing: '0.06em', color: p.clean ? 'rgba(143,168,192,0.9)' : 'rgba(240,234,224,0.4)', border: `0.5px solid ${p.clean ? 'rgba(143,168,192,0.3)' : 'rgba(240,234,224,0.15)'}` }}>
                       {p.clean ? `✓ clean · ${p.score}/100` : `⚠ 1 concern`}
                     </span>
-                    <span style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.25)' }}>{p.price}</span>
+                    <span style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.3)' }}>{p.price}</span>
                   </div>
                 </div>
               ))}
@@ -294,16 +270,16 @@ export default function Home() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: S, fontSize: 60, color: 'rgba(240,234,224,0.05)', lineHeight: 1 }}>2,000+</div>
-                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.18)', marginTop: 4 }}>products screened</div>
+                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.22)', marginTop: 4 }}>products screened</div>
                 <div style={{ fontFamily: S, fontSize: 60, color: 'rgba(240,234,224,0.05)', lineHeight: 1, marginTop: 24 }}>14</div>
-                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.18)', marginTop: 4 }}>harmful categories</div>
+                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.22)', marginTop: 4 }}>harmful categories</div>
               </div>
             </section>
 
             {/* ── FOOTER ── */}
             <footer style={{ padding: '22px 64px', borderTop: '0.5px solid rgba(240,234,224,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: S, fontSize: 15, color: 'rgba(240,234,224,0.2)' }}>skinvra.</span>
-              <span style={{ fontFamily: F, fontSize: 9, color: 'rgba(240,234,224,0.12)', letterSpacing: '0.08em' }}>no brand affiliations · ingredient-screened</span>
+              <span style={{ fontFamily: S, fontSize: 15, color: 'rgba(240,234,224,0.25)' }}>skinvra.</span>
+              <span style={{ fontFamily: F, fontSize: 9, color: 'rgba(240,234,224,0.15)', letterSpacing: '0.08em' }}>no brand affiliations · ingredient-screened</span>
             </footer>
 
           </>
@@ -317,7 +293,7 @@ export default function Home() {
                 skinvra<span style={{ color: '#8FA8C0' }}>.</span>
               </button>
               {step !== 4 && (
-                <span style={{ fontFamily: F, fontSize: 10, color: 'rgba(240,234,224,0.28)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                <span style={{ fontFamily: F, fontSize: 10, color: 'rgba(240,234,224,0.35)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                   step {step} of 3
                 </span>
               )}
@@ -337,7 +313,7 @@ export default function Home() {
                 loading ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 20 }}>
                     <div style={{ width: 36, height: 36, border: '0.5px solid rgba(240,234,224,0.1)', borderTopColor: '#8FA8C0', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
-                    <p style={{ fontFamily: F, fontSize: 12, color: 'rgba(240,234,224,0.35)', letterSpacing: '0.06em' }}>finding your picks</p>
+                    <p style={{ fontFamily: F, fontSize: 12, color: 'rgba(240,234,224,0.4)', letterSpacing: '0.06em' }}>finding your picks</p>
                   </div>
                 ) : (
                   <ResultsStep products={products} error={error} skinType={profile.skinType} onRestart={restart} />
