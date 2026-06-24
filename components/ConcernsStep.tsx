@@ -1,4 +1,4 @@
-interface ConcernsStepProps {
+interface Props {
   concerns: string[]
   pastProducts: string
   onToggleConcern: (c: string) => void
@@ -8,76 +8,69 @@ interface ConcernsStepProps {
 }
 
 const CONCERNS = [
-  'Acne / breakouts',
-  'Dark spots / hyperpigmentation',
-  'Fine lines / wrinkles',
-  'Redness / rosacea',
-  'Dullness / uneven texture',
-  'Large pores',
-  'Dryness / dehydration',
-  'Dark circles',
-  'Sun damage',
-  'Uneven skin tone',
+  'Acne / breakouts', 'Dark spots / hyperpigmentation', 'Fine lines / wrinkles',
+  'Redness / rosacea', 'Dullness / uneven texture', 'Large pores',
+  'Dryness / dehydration', 'Dark circles', 'Sun damage', 'Uneven skin tone',
 ]
 
-export default function ConcernsStep({
-  concerns,
-  pastProducts,
-  onToggleConcern,
-  onPastProductsChange,
-  onNext,
-  onBack,
-}: ConcernsStepProps) {
+const btn = (active: boolean) => ({
+  padding: '9px 18px', borderRadius: 100, cursor: 'pointer',
+  fontFamily: "'DM Sans', sans-serif", fontSize: 12,
+  background: active ? 'rgba(240,234,224,0.07)' : 'transparent',
+  border: `0.5px solid ${active ? 'rgba(240,234,224,0.38)' : 'rgba(240,234,224,0.1)'}`,
+  color: active ? '#F0EAE0' : 'rgba(240,234,224,0.38)',
+  transition: 'all 0.15s',
+})
+
+export default function ConcernsStep({ concerns, pastProducts, onToggleConcern, onPastProductsChange, onNext, onBack }: Props) {
   return (
     <div>
-      <div className="mb-7">
-        <p className="text-xs uppercase tracking-widest text-sage-600 mb-1.5">Step 2 of 4</p>
-        <h2 className="font-serif text-2xl font-medium text-gray-900">Your skin concerns</h2>
-        <p className="text-gray-500 mt-1.5 text-sm">Pick everything that applies.</p>
-      </div>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.28)', marginBottom: 20 }}>step 2 of 3</p>
+      <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 38, color: '#F0EAE0', lineHeight: 1.05, marginBottom: 8 }}>
+        your <em style={{ fontStyle: 'italic', color: '#8FA8C0' }}>concerns.</em>
+      </h2>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(240,234,224,0.35)', lineHeight: 1.8, marginBottom: 32 }}>pick everything that applies.</p>
 
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 36 }}>
         {CONCERNS.map((c) => (
-          <button
-            key={c}
-            onClick={() => onToggleConcern(c)}
-            className={`chip ${concerns.includes(c) ? 'selected' : ''}`}
-          >
-            {c}
-          </button>
+          <button key={c} onClick={() => onToggleConcern(c)} style={btn(concerns.includes(c))}>{c}</button>
         ))}
       </div>
 
-      <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Products you&apos;ve tried — what worked and what didn&apos;t
+      <div style={{ marginBottom: 40 }}>
+        <label style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'rgba(240,234,224,0.45)', display: 'block', marginBottom: 6 }}>
+          products you&apos;ve tried — what worked and what didn&apos;t
         </label>
-        <p className="text-xs text-gray-400 mb-2">
-          Be specific about reactions or breakouts — Skinvra will actively avoid ingredients
-          that caused issues and prioritize what your skin liked.
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'rgba(240,234,224,0.22)', marginBottom: 10, lineHeight: 1.6 }}>
+          be specific about reactions — we&apos;ll actively avoid what caused issues.
         </p>
         <textarea
-          className="input-base resize-none"
           rows={4}
           value={pastProducts}
           onChange={(e) => onPastProductsChange(e.target.value)}
-          placeholder="e.g. CeraVe moisturizer worked great. The Ordinary niacinamide broke me out badly. Paula's Choice BHA was too harsh and caused peeling."
+          placeholder="e.g. CeraVe moisturizer worked great. The Ordinary niacinamide broke me out. Paula's Choice BHA was too harsh..."
+          style={{
+            width: '100%', padding: '14px 16px', borderRadius: 14,
+            background: 'rgba(240,234,224,0.04)', border: '0.5px solid rgba(240,234,224,0.1)',
+            color: '#F0EAE0', fontSize: 13, fontFamily: "'DM Sans', sans-serif",
+            lineHeight: 1.7, resize: 'none', outline: 'none',
+          }}
         />
       </div>
 
-      <div className="flex gap-3">
-        <button className="btn-secondary" onClick={onBack}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </button>
-        <button className="btn-primary" onClick={onNext}>
-          Continue
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button onClick={onBack} style={{
+          padding: '14px 22px', borderRadius: 100, border: '0.5px solid rgba(240,234,224,0.12)',
+          color: 'rgba(240,234,224,0.35)', background: 'transparent', cursor: 'pointer',
+          fontSize: 11, fontFamily: "'DM Sans', sans-serif",
+        }}>← back</button>
+        <button onClick={onNext} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 10,
+          background: '#F0EAE0', color: '#2A1E14',
+          fontSize: 11, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase',
+          padding: '14px 28px', borderRadius: 100, border: 'none', cursor: 'pointer',
+          fontFamily: "'DM Sans', sans-serif",
+        }}>continue →</button>
       </div>
     </div>
   )
