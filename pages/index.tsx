@@ -1,4 +1,4 @@
-```tsx
+
 import { useState } from 'react'
 import Head from 'next/head'
 import SkinTypeStep from '@/components/SkinTypeStep'
@@ -395,4 +395,4 @@ export default function Home() {
     </>
   )
 }
-```
+
