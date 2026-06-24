@@ -10,7 +10,7 @@ const defaultProfile: SkinProfile = {
   skinType: '',
   concerns: [],
   pastProducts: '',
-  budget: '$25–$50',
+  budget: 'any',
   productType: '',
   extraNotes: '',
 }
