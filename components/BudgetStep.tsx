@@ -10,7 +10,13 @@ interface BudgetStepProps {
   loading: boolean
 }
 
-const BUDGETS = ['Under $25', '$25–$50', '$50–$100', '$100+']
+const BUDGET_TIERS = [
+  { id: 'drugstore', label: 'Drugstore', desc: 'CeraVe, Neutrogena, The Ordinary', range: [0, 25] },
+  { id: 'mid', label: 'Mid-range', desc: 'Paula\'s Choice, COSRX, Glow Recipe', range: [15, 60] },
+  { id: 'premium', label: 'Premium', desc: 'Tatcha, Drunk Elephant, Sunday Riley', range: [40, 120] },
+  { id: 'luxury', label: 'Luxury', desc: 'La Mer, Augustinus Bader, SK-II', range: [80, 500] },
+  { id: 'any', label: 'No preference', desc: 'Show me everything', range: [0, 9999] },
+]
 
 const PRODUCT_TYPES = [
   'Moisturizer', 'Serum', 'Cleanser', 'Sunscreen',
@@ -31,11 +37,25 @@ export default function BudgetStep({
       </div>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Price range per product</label>
-        <div className="flex flex-wrap gap-2">
-          {BUDGETS.map((b) => (
-            <button key={b} onClick={() => onBudgetChange(b)} className={`chip ${budget === b ? 'selected' : ''}`}>
-              {b}
+        <label className="block text-sm font-medium text-gray-700 mb-3">Price range</label>
+        <div className="grid grid-cols-1 gap-2">
+          {BUDGET_TIERS.map((tier) => (
+            <button
+              key={tier.id}
+              onClick={() => onBudgetChange(tier.id)}
+              className={`flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${
+                budget === tier.id
+                  ? 'bg-sage-50 border-sage-500'
+                  : 'bg-white border-gray-200 hover:border-sage-300'
+              }`}
+            >
+              <div>
+                <span className="text-sm font-medium text-gray-900 block">{tier.label}</span>
+                <span className="text-xs text-gray-400">{tier.desc}</span>
+              </div>
+              <span className="text-xs text-gray-400 shrink-0 ml-4">
+                {tier.id === 'any' ? '' : tier.id === 'drugstore' ? 'Under $25' : tier.id === 'mid' ? '$15–$60' : tier.id === 'premium' ? '$40–$120' : '$80+'}
+              </span>
             </button>
           ))}
         </div>
@@ -61,7 +81,7 @@ export default function BudgetStep({
           rows={3}
           value={extraNotes}
           onChange={(e) => onExtraNotesChange(e.target.value)}
-          placeholder="e.g. fragrance-free, vegan, cruelty-free, no silicones, reef-safe..."
+          placeholder="e.g. fragrance-free, vegan, cruelty-free, no silicones..."
         />
       </div>
 
