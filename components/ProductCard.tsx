@@ -11,14 +11,14 @@ const SEVERITY_COLORS = {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { name, brand, price, concerns, flags, isClean, cleanScore, link, rating, reviewCount, scoreBreakdown } = product
+  const { name, brand, price, concerns, flags, isClean, cleanScore, rating, reviewCount, scoreBreakdown } = product
 
-  const shopLink = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(brand + ' ' + name)}`
+  const shopLink = `https://www.sephora.com/search?keyword=${encodeURIComponent(name)}`
+  const priceLabel = price > 0 ? `~$${price.toFixed(0)}` : 'See price'
 
   return (
     <div className={`card ${isClean ? 'ring-1 ring-sage-200' : ''}`}>
 
-      {/* Header */}
       <div className="flex justify-between items-start gap-4 mb-3">
         <div>
           <h3 className="font-medium text-gray-900 leading-snug">{name}</h3>
@@ -31,25 +31,24 @@ export default function ProductCard({ product }: ProductCardProps) {
             rel="noopener noreferrer"
             className="font-medium text-sage-600 hover:text-sage-800 text-sm"
           >
-            {price > 0 ? `~$${price.toFixed(0)}` : 'See price'}
+            {priceLabel}
           </a>
           {rating > 0 && (
             <p className="text-xs text-gray-400 mt-0.5">
-              ★ {rating.toFixed(1)}{reviewCount > 0 ? ` (${reviewCount.toLocaleString()})` : ''}
+              {rating.toFixed(1)} ({reviewCount > 0 ? reviewCount.toLocaleString() : '0'})
             </p>
           )}
         </div>
       </div>
 
-      {/* Concern badges */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {isClean ? (
           <span className="text-xs px-2.5 py-1 rounded-full bg-sage-50 text-sage-700 border border-sage-200 font-medium">
-            ✓ Clean ingredients
+            Clean ingredients
           </span>
         ) : (
           <span className="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">
-            ⚠ {flags.length} ingredient concern{flags.length > 1 ? 's' : ''}
+            {flags.length} ingredient concern{flags.length > 1 ? 's' : ''}
           </span>
         )}
         {concerns.map((c) => (
@@ -59,7 +58,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         ))}
       </div>
 
-      {/* Clean score bar */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
           <span className="text-xs text-gray-400">Clean score</span>
@@ -75,7 +73,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Score breakdown */}
       <details className="mb-3 group">
         <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600 list-none flex items-center gap-1">
           <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +97,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </details>
 
-      {/* Ingredient flags */}
       {flags.length > 0 && (
         <div className="space-y-1.5 mb-3">
           {flags.map((f) => (
@@ -111,7 +107,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       )}
 
-      {/* Links */}
       <div className="flex gap-3 flex-wrap">
         
           href={shopLink}
@@ -119,18 +114,18 @@ export default function ProductCard({ product }: ProductCardProps) {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm text-sage-600 hover:text-sage-800 transition-colors"
         >
-          Shop this product
+          Shop on Sephora
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
         </a>
         
-          href={`https://www.sephora.com/search?keyword=${encodeURIComponent(name)}`}
+          href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(brand + ' ' + name)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
         >
-          Search Sephora
+          Compare prices
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
