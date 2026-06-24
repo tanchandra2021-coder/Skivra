@@ -1,55 +1,52 @@
 import type { ScoredProduct } from '@/lib/types'
 import ProductCard from './ProductCard'
 
-interface ResultsStepProps {
+interface Props {
   products: ScoredProduct[]
   error: string | null
   skinType: string
   onRestart: () => void
 }
 
-export default function ResultsStep({ products, error, skinType, onRestart }: ResultsStepProps) {
+export default function ResultsStep({ products, error, skinType, onRestart }: Props) {
   const cleanCount = products.filter((p) => p.isClean).length
-
   return (
     <div>
-      <div className="mb-7">
-        <p className="text-xs uppercase tracking-widest text-sage-600 mb-1.5">Your results</p>
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="font-serif text-2xl font-medium text-gray-900">
-            Picks for {skinType} skin
-          </h2>
-          {products.length > 0 && (
-            <span className="text-sm text-gray-400 shrink-0 pb-0.5">
-              {cleanCount} of {products.length} fully clean
-            </span>
-          )}
-        </div>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.28)', marginBottom: 10 }}>your results</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 36 }}>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 34, color: '#F0EAE0', lineHeight: 1.05 }}>
+          picks for <em style={{ fontStyle: 'italic', color: '#8FA8C0' }}>{skinType}</em> skin
+        </h2>
+        {products.length > 0 && (
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: 'rgba(240,234,224,0.25)', paddingBottom: 4 }}>
+            {cleanCount} of {products.length} fully clean
+          </span>
+        )}
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-sm text-red-700 mb-6">
+        <div style={{ padding: '14px 18px', borderRadius: 14, background: 'rgba(240,234,224,0.04)', border: '0.5px solid rgba(240,234,224,0.1)', fontSize: 13, color: 'rgba(240,234,224,0.45)', marginBottom: 28, fontFamily: "'DM Sans', sans-serif" }}>
           {error}
         </div>
       )}
 
       {products.length === 0 && !error && (
-        <div className="p-6 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-500 mb-6 text-center">
-          No products matched your filters. Try broadening your budget or selecting &quot;Not sure — suggest&quot; for product type.
+        <div style={{ padding: '28px', borderRadius: 14, background: 'rgba(240,234,224,0.03)', border: '0.5px solid rgba(240,234,224,0.07)', fontSize: 13, color: 'rgba(240,234,224,0.35)', marginBottom: 28, fontFamily: "'DM Sans', sans-serif", lineHeight: 1.7 }}>
+          no products matched your filters. try selecting &quot;not sure — suggest&quot; for product type or broadening your budget.
         </div>
       )}
 
-      <div className="space-y-4 mb-8">
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginBottom: 48 }}>
+        {products.map((p) => <ProductCard key={p.id} product={p} />)}
       </div>
 
-      <button className="btn-secondary" onClick={onRestart}>
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Start over
+      <button onClick={onRestart} style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        color: 'rgba(240,234,224,0.35)', fontSize: 11, letterSpacing: '0.06em',
+        padding: '12px 0', background: 'transparent', border: 'none', cursor: 'pointer',
+        fontFamily: "'DM Sans', sans-serif",
+      }}>
+        ← start over
       </button>
     </div>
   )
