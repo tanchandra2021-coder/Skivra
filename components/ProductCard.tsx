@@ -13,6 +13,8 @@ const SEVERITY_COLORS = {
 export default function ProductCard({ product }: ProductCardProps) {
   const { name, brand, price, concerns, flags, isClean, cleanScore, link, rating, reviewCount, scoreBreakdown } = product
 
+  const shopLink = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(brand + ' ' + name)}`
+
   return (
     <div className={`card ${isClean ? 'ring-1 ring-sage-200' : ''}`}>
 
@@ -23,7 +25,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="text-sm text-gray-400 mt-0.5">{brand}</p>
         </div>
         <div className="text-right shrink-0">
-          {price > 0 && <span className="font-medium text-gray-900">${price}</span>}
+          
+            href={shopLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-sage-600 hover:text-sage-800 text-sm"
+          >
+            {price > 0 ? `~$${price.toFixed(0)}` : 'See price'}
+          </a>
           {rating > 0 && (
             <p className="text-xs text-gray-400 mt-0.5">
               ★ {rating.toFixed(1)}{reviewCount > 0 ? ` (${reviewCount.toLocaleString()})` : ''}
@@ -102,16 +111,31 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       )}
 
-      {/* Link */}
-      {link && (
-        <a href={link} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm text-sage-600 hover:text-sage-800 transition-colors">
-          View product
+      {/* Links */}
+      <div className="flex gap-3 flex-wrap">
+        
+          href={shopLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm text-sage-600 hover:text-sage-800 transition-colors"
+        >
+          Shop this product
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
         </a>
-      )}
+        
+          href={`https://www.sephora.com/search?keyword=${encodeURIComponent(name)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          Search Sephora
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
     </div>
   )
 }
