@@ -89,7 +89,7 @@ export default function Home() {
         body { background: #2A1E14; color: #F0EAE0; font-family: ${F}; -webkit-font-smoothing: antialiased; }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
       <div style={{ background: '#2A1E14', minHeight: '100vh' }}>
@@ -97,53 +97,37 @@ export default function Home() {
         {step === 'landing' && (
           <>
 
-            {/* ── HERO: side by side images with centered logo overlay ── */}
+            {/* ── HERO ── */}
             <section style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
 
               {/* Two images side by side */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: '100%' }}>
-
-                {/* Left — lady with pearl clip (skin3) */}
                 <div style={{ position: 'relative', overflow: 'hidden' }}>
                   <img
                     src="/images/skin3.webp"
                     alt=""
-                    style={{
-                      width: '100%', height: '100%',
-                      objectFit: 'cover', objectPosition: '60% center',
-                      display: 'block',
-                      transform: 'scale(1.02)',
-                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '60% center', display: 'block' }}
                   />
                 </div>
-
-                {/* Right — blue-green eye (skin1) */}
                 <div style={{ position: 'relative', overflow: 'hidden' }}>
                   <img
                     src="/images/skin1.webp"
                     alt=""
-                    style={{
-                      width: '100%', height: '100%',
-                      objectFit: 'cover', objectPosition: 'center 35%',
-                      display: 'block',
-                      transform: 'scale(1.02)',
-                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%', display: 'block' }}
                   />
                 </div>
               </div>
 
-              {/* Full scrim over both */}
+              {/* Stronger scrim for readability */}
               <div style={{
                 position: 'absolute', inset: 0,
-                background: 'linear-gradient(180deg, rgba(20,12,6,0.45) 0%, rgba(20,12,6,0.15) 35%, rgba(20,12,6,0.15) 60%, rgba(20,12,6,0.82) 100%)',
+                background: 'linear-gradient(180deg, rgba(20,12,6,0.62) 0%, rgba(20,12,6,0.38) 30%, rgba(20,12,6,0.38) 55%, rgba(20,12,6,0.92) 100%)',
               }} />
 
-              {/* Thin center divider line */}
+              {/* Thin center divider */}
               <div style={{
-                position: 'absolute', top: 0, bottom: 0,
-                left: '50%', width: '0.5px',
-                background: 'rgba(240,234,224,0.12)',
-                zIndex: 5,
+                position: 'absolute', top: 0, bottom: 0, left: '50%',
+                width: '0.5px', background: 'rgba(240,234,224,0.1)', zIndex: 5,
               }} />
 
               {/* Nav */}
@@ -152,78 +136,92 @@ export default function Home() {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '28px 48px',
               }}>
-                <span style={{ fontFamily: F, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.4)' }}>
+                <span style={{ fontFamily: F, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.5)' }}>
                   clean beauty
                 </span>
                 <button onClick={() => setStep(1)} style={{
                   fontFamily: F, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
-                  color: 'rgba(240,234,224,0.45)', padding: '9px 20px',
-                  border: '0.5px solid rgba(240,234,224,0.18)', borderRadius: 100,
+                  color: 'rgba(240,234,224,0.55)', padding: '9px 20px',
+                  border: '0.5px solid rgba(240,234,224,0.25)', borderRadius: 100,
                   background: 'transparent', cursor: 'pointer',
                 }}>
                   get my picks
                 </button>
               </nav>
 
-              {/* Centered logo */}
+              {/* Center: logo + tagline + UVPs */}
               <div style={{
                 position: 'absolute', inset: 0, zIndex: 15,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center',
-                gap: 12,
+                gap: 0,
                 animation: 'fadeUp 1.2s ease forwards',
               }}>
+                {/* Eyebrow */}
                 <p style={{
                   fontFamily: F, fontSize: 9, letterSpacing: '0.26em',
-                  textTransform: 'uppercase', color: 'rgba(240,234,224,0.38)',
+                  textTransform: 'uppercase', color: 'rgba(240,234,224,0.45)',
+                  marginBottom: 14,
                 }}>
                   ingredient-screened
                 </p>
+
+                {/* Logo */}
                 <h1 style={{
-                  fontFamily: S, fontSize: 'clamp(64px, 9vw, 120px)',
+                  fontFamily: S, fontSize: 'clamp(64px, 9vw, 118px)',
                   fontWeight: 400, lineHeight: 1, color: '#F0EAE0',
                   textAlign: 'center', letterSpacing: '-0.01em',
+                  marginBottom: 10,
                 }}>
                   skinvra<span style={{ color: '#8FA8C0' }}>.</span>
                 </h1>
+
+                {/* Tagline */}
                 <p style={{
-                  fontFamily: S, fontSize: 'clamp(16px, 2vw, 22px)',
-                  fontStyle: 'italic', color: 'rgba(240,234,224,0.45)',
-                  letterSpacing: '0.01em',
+                  fontFamily: S, fontSize: 'clamp(15px, 1.8vw, 21px)',
+                  fontStyle: 'italic', color: 'rgba(240,234,224,0.5)',
+                  letterSpacing: '0.01em', marginBottom: 40,
                 }}>
                   know what&apos;s on your skin.
                 </p>
-              </div>
 
-              {/* Bottom CTA anchored */}
-              <div style={{
-                position: 'absolute', bottom: 48, left: 0, right: 0, zIndex: 20,
-                display: 'flex', justifyContent: 'center', gap: 12,
-              }}>
+                {/* UVP pills */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 40 }}>
+                  {[
+                    { stat: '2,000+', label: 'products scanned' },
+                    { stat: '✓', label: 'recommends only clean ingredients' },
+                    { stat: '↺', label: 'based on what has & hasn\'t worked for you' },
+                  ].map(({ stat, label }) => (
+                    <div key={label} style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      background: 'rgba(240,234,224,0.07)',
+                      border: '0.5px solid rgba(240,234,224,0.12)',
+                      borderRadius: 100, padding: '8px 18px',
+                      backdropFilter: 'blur(8px)',
+                    }}>
+                      <span style={{ fontFamily: S, fontSize: 13, color: '#8FA8C0' }}>{stat}</span>
+                      <span style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.65)', letterSpacing: '0.04em' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
                 <button onClick={() => setStep(1)} style={{
                   fontFamily: F, display: 'inline-flex', alignItems: 'center', gap: 10,
                   background: '#F0EAE0', color: '#2A1E14',
                   fontSize: 11, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase',
-                  padding: '14px 32px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                  padding: '14px 36px', borderRadius: 100, border: 'none', cursor: 'pointer',
                 }}>
                   find my products →
                 </button>
-                <button style={{
-                  fontFamily: F, display: 'inline-flex', alignItems: 'center',
-                  color: 'rgba(240,234,224,0.35)', fontSize: 11,
-                  padding: '14px 16px', background: 'transparent', border: 'none', cursor: 'pointer',
-                  letterSpacing: '0.04em',
-                }}>
-                  see how it works ↓
-                </button>
               </div>
 
-              {/* Scroll hint */}
+              {/* Bottom scroll hint */}
               <div style={{
-                position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)',
+                position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)',
                 zIndex: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
               }}>
-                <div style={{ width: '0.5px', height: 28, background: 'rgba(240,234,224,0.2)' }} />
+                <div style={{ width: '0.5px', height: 32, background: 'rgba(240,234,224,0.18)' }} />
               </div>
             </section>
 
@@ -254,45 +252,33 @@ export default function Home() {
                   <div key={n}>
                     <div style={{ fontFamily: S, fontSize: 40, fontStyle: 'italic', color: 'rgba(240,234,224,0.04)', lineHeight: 1, marginBottom: 14 }}>{n}</div>
                     <div style={{ fontFamily: S, fontSize: 20, color: '#F0EAE0', marginBottom: 8 }}>{t}</div>
-                    <div style={{ fontFamily: F, fontSize: 12, color: 'rgba(240,234,224,0.3)', lineHeight: 1.85 }}>{d}</div>
+                    <div style={{ fontFamily: F, fontSize: 12, color: 'rgba(240,234,224,0.35)', lineHeight: 1.85 }}>{d}</div>
                   </div>
                 ))}
               </div>
             </section>
 
-            {/* ── IMAGE DIVIDER: dewy back + pink eye side by side ── */}
-            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: 480, gap: 0 }}>
-
-              {/* Left — dewy back (skin2) */}
+            {/* ── IMAGE DIVIDER ── */}
+            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', height: 480 }}>
               <div style={{ position: 'relative', overflow: 'hidden' }}>
                 <img
                   src="/images/skin2.webp"
                   alt=""
-                  style={{
-                    width: '100%', height: '100%',
-                    objectFit: 'cover', objectPosition: 'center 30%',
-                    display: 'block',
-                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%', display: 'block' }}
                 />
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(20,12,6,0.15)' }} />
-                <span style={{ position: 'absolute', bottom: 22, left: 28, fontFamily: F, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.38)', zIndex: 2 }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(20,12,6,0.25)' }} />
+                <span style={{ position: 'absolute', bottom: 22, left: 28, fontFamily: F, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.5)', zIndex: 2 }}>
                   glazed
                 </span>
               </div>
-
-              {/* Right — pink glazed eye (skin4) */}
               <div style={{ position: 'relative', overflow: 'hidden' }}>
                 <img
                   src="/images/skin4.webp"
                   alt=""
-                  style={{
-                    width: '100%', height: '100%',
-                    objectFit: 'cover', objectPosition: 'center 25%',
-                    display: 'block',
-                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 25%', display: 'block' }}
                 />
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(20,12,6,0.12)' }} />
-                <span style={{ position: 'absolute', bottom: 22, right: 28, fontFamily: F, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.38)', zIndex: 2 }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(20,12,6,0.22)' }} />
+                <span style={{ position: 'absolute', bottom: 22, right: 28, fontFamily: F, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.5)', zIndex: 2 }}>
                   luminous
                 </span>
               </div>
@@ -315,18 +301,18 @@ export default function Home() {
                   </div>
                   <div>
                     <div style={{ fontFamily: S, fontSize: 16, color: '#F0EAE0', marginBottom: 4 }}>{p.name}</div>
-                    <div style={{ fontFamily: F, fontSize: 10, color: 'rgba(240,234,224,0.28)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{p.brand}</div>
+                    <div style={{ fontFamily: F, fontSize: 10, color: 'rgba(240,234,224,0.35)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{p.brand}</div>
                   </div>
                   <div style={{ marginLeft: 'auto', textAlign: 'right', flexShrink: 0 }}>
                     <span style={{
                       fontFamily: F, fontSize: 9, padding: '4px 12px', borderRadius: 100,
                       display: 'block', marginBottom: 5, letterSpacing: '0.06em',
-                      color: p.clean ? 'rgba(143,168,192,0.85)' : 'rgba(240,234,224,0.3)',
-                      border: `0.5px solid ${p.clean ? 'rgba(143,168,192,0.25)' : 'rgba(240,234,224,0.1)'}`,
+                      color: p.clean ? 'rgba(143,168,192,0.9)' : 'rgba(240,234,224,0.35)',
+                      border: `0.5px solid ${p.clean ? 'rgba(143,168,192,0.3)' : 'rgba(240,234,224,0.12)'}`,
                     }}>
                       {p.clean ? `✓ clean · ${p.score}/100` : `⚠ 1 concern`}
                     </span>
-                    <span style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.2)' }}>{p.price}</span>
+                    <span style={{ fontFamily: F, fontSize: 11, color: 'rgba(240,234,224,0.25)' }}>{p.price}</span>
                   </div>
                 </div>
               ))}
@@ -349,9 +335,9 @@ export default function Home() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: S, fontSize: 60, color: 'rgba(240,234,224,0.05)', lineHeight: 1 }}>2,000+</div>
-                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.16)', marginTop: 4 }}>products screened</div>
+                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.18)', marginTop: 4 }}>products screened</div>
                 <div style={{ fontFamily: S, fontSize: 60, color: 'rgba(240,234,224,0.05)', lineHeight: 1, marginTop: 24 }}>14</div>
-                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.16)', marginTop: 4 }}>harmful categories</div>
+                <div style={{ fontFamily: F, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(240,234,224,0.18)', marginTop: 4 }}>harmful categories</div>
               </div>
             </section>
 
